@@ -1,0 +1,95 @@
+# Cluster name - main variable used throughout the chart
+clusterName: ocp1
+
+# Set to true only when you want Helm to create namespaces.
+# If namespaces already exist, keep this false to avoid ownership conflicts.
+createInfraNamespaces: false
+createClusterNamespace: true
+
+# Infrastructure cluster details
+infraCluster:
+  namespace: clusters
+
+# DNS configuration
+dns:
+  baseDomain: lab.gfontana.me
+
+# Release configuration
+release:
+  image: quay.io/openshift-release-dev/ocp-release:4.20.14-multi
+
+# HostedCluster networking
+networking:
+  clusterNetwork:
+    - cidr: 10.132.0.0/14
+  serviceNetwork:
+    - cidr: 172.31.0.0/16
+  networkType: OVNKubernetes
+
+# etcd storage configuration
+etcd:
+  persistentVolume:
+    size: 8Gi
+
+# Availability policies
+controllerAvailabilityPolicy: SingleReplica
+infrastructureAvailabilityPolicy: SingleReplica
+
+# KubeVirt platform configuration
+platform:
+  type: KubeVirt
+  baseDomainPassthrough: true
+  storageDriver:
+    type: Manual
+    storageClassMapping:
+      - infraStorageClassName: ocs-storagecluster-ceph-rbd-virtualization
+        guestStorageClassName: ocs-storagecluster-ceph-rbd-virtualization-hub
+      - infraStorageClassName: ocs-storagecluster-ceph-rbd
+        guestStorageClassName: ocs-storagecluster-ceph-rbd-hub
+      - infraStorageClassName: ocs-storagecluster-cephfs
+        guestStorageClassName: ocs-storagecluster-cephfs-hub
+
+# NodePool configuration
+nodePool:
+  arch: amd64
+  replicas: 1
+  autoRepair: false
+  upgradeType: Replace
+  compute:
+    cores: 8
+    memory: 32Gi
+  rootVolume:
+    size: 100Gi
+    accessModes:
+      - ReadWriteMany
+    storageClass: ocs-storagecluster-ceph-rbd-virtualization
+    volumeMode: Block
+  additionalNetworks:
+    - name: default/vlan102
+  attachDefaultNetwork: false
+
+# ManagedCluster labels
+managedCluster:
+  hostingCluster: local-cluster
+  klusterletDeployMode: Hosted
+  createdVia: hypershift
+  labels:
+    cloud: BareMetal
+    vendor: OpenShift
+
+# KlusterletAddonConfig features
+klusterletAddon:
+  applicationManager: true
+  policyController: true
+  searchCollector: true
+  certPolicyController: true
+
+# Secrets source configuration
+secretsSource:
+  sourceSecret: simpsons-ocpv
+  sourceNamespace: open-cluster-management-credentials
+
+# Secret sync job configuration
+secretSync:
+  ttlSecondsAfterFinished: 300
+

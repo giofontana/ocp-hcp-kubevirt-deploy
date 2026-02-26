@@ -1,0 +1,8 @@
+apiVersion: v2
+name: ocp-hypershift-hcp
+description: A Helm chart for deploying an OpenShift cluster on KubeVirt using Hosted Control Planes
+type: application
+version: 1.0.0
+appVersion: "4.20"
+maintainers:
+  - name: GitOps Admin

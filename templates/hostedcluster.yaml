@@ -1,0 +1,59 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: {{ .Values.clusterName }}
+  namespace: {{ .Values.infraCluster.namespace }}
+spec:
+  dns:
+    baseDomain: {{ .Values.dns.baseDomain }}
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: {{ .Values.etcd.persistentVolume.size }}
+        type: PersistentVolume
+    managementType: Managed
+  release:
+    image: {{ .Values.release.image }}
+  pullSecret:
+    name: pullsecret-cluster-{{ .Values.clusterName }}
+  sshKey:
+    name: sshkey-cluster-{{ .Values.clusterName }}
+  networking:
+    clusterNetwork:
+      {{- range .Values.networking.clusterNetwork }}
+      - cidr: {{ .cidr }}
+      {{- end }}
+    serviceNetwork:
+      {{- range .Values.networking.serviceNetwork }}
+      - cidr: {{ .cidr }}
+      {{- end }}
+    networkType: {{ .Values.networking.networkType }}
+  controllerAvailabilityPolicy: {{ .Values.controllerAvailabilityPolicy }}
+  infrastructureAvailabilityPolicy: {{ .Values.infrastructureAvailabilityPolicy }}
+  platform:
+    type: {{ .Values.platform.type }}
+    kubevirt:
+      baseDomainPassthrough: {{ .Values.platform.baseDomainPassthrough }}
+      storageDriver:
+        type: {{ .Values.platform.storageDriver.type }}
+        manual:
+          storageClassMapping:
+            {{- range .Values.platform.storageDriver.storageClassMapping }}
+            - infraStorageClassName: {{ .infraStorageClassName }}
+              guestStorageClassName: {{ .guestStorageClassName }}
+            {{- end }}
+  infraID: {{ .Values.clusterName }}
+  services:
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: OIDC
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route

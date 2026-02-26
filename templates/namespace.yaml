@@ -1,0 +1,17 @@
+{{- if .Values.createInfraNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clusters
+  labels:
+    openshift.io/cluster-monitoring: "true"
+{{- end }}
+---
+{{- if .Values.createClusterNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.clusterName }}
+  labels:
+    openshift.io/cluster-monitoring: "true"
+{{- end }}

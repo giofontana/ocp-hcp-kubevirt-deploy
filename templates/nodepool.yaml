@@ -1,0 +1,35 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: ocp-sno{{ .Values.clusterName | trimPrefix "ocp" }}
+  namespace: {{ .Values.infraCluster.namespace }}
+spec:
+  arch: {{ .Values.nodePool.arch }}
+  clusterName: {{ .Values.clusterName }}
+  replicas: {{ .Values.nodePool.replicas }}
+  management:
+    autoRepair: {{ .Values.nodePool.autoRepair }}
+    upgradeType: {{ .Values.nodePool.upgradeType }}
+  platform:
+    type: {{ .Values.platform.type }}
+    kubevirt:
+      compute:
+        cores: {{ .Values.nodePool.compute.cores }}
+        memory: {{ .Values.nodePool.compute.memory }}
+      rootVolume:
+        type: Persistent
+        persistent:
+          size: {{ .Values.nodePool.rootVolume.size }}
+          accessModes:
+            {{- range .Values.nodePool.rootVolume.accessModes }}
+            - {{ . }}
+            {{- end }}
+          storageClass: {{ .Values.nodePool.rootVolume.storageClass }}
+          volumeMode: {{ .Values.nodePool.rootVolume.volumeMode }}
+      additionalNetworks:
+      {{- range .Values.nodePool.additionalNetworks }}
+      - name: {{ .name }}
+      {{- end }}
+      attachDefaultNetwork: {{ .Values.nodePool.attachDefaultNetwork }}
+  release:
+    image: {{ .Values.release.image }}
