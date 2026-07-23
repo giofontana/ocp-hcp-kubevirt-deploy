@@ -69,6 +69,24 @@ oc --kubeconfig="$temp_kubeconfig" wait --for=condition=available --timeout=120s
 echo "Deploying Argo CD..."
 oc --kubeconfig="$temp_kubeconfig" apply -k gitops/manifests/clusters/all/aggregate/openshift-gitops
 
+
+echo "Waiting for OpenShift GitOps resources to be created..."
+for attempt in {1..30}; do
+    if oc --kubeconfig="$temp_kubeconfig" get argocd openshift-gitops -n openshift-gitops &> /dev/null && \
+       oc --kubeconfig="$temp_kubeconfig" get statefulset openshift-gitops-application-controller -n openshift-gitops &> /dev/null; then
+        echo "OpenShift GitOps resources detected."
+        break
+    fi
+
+    echo "OpenShift GitOps not ready yet (${attempt}/30). Retrying in 10 seconds..."
+    sleep 10
+done
+
+if ! oc --kubeconfig="$temp_kubeconfig" get statefulset openshift-gitops-application-controller -n openshift-gitops &> /dev/null; then
+    echo "Timed out waiting for OpenShift GitOps to be deployed."
+    exit 1
+fi
+
 # Wait for the Argo CD application controller StatefulSet to be ready
 oc --kubeconfig="$temp_kubeconfig" patch consoles.operator.openshift.io/cluster --type='merge' -p '{"spec":{"plugins":["gitops-plugin"]}}'
 
